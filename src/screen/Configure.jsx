@@ -150,12 +150,12 @@ const Configure = () => {
         source.droppableId === destination.droppableId
       );
       const list =
-        source.droppableId === "defaultElement"
+        source.droppableId === "defaultElement" && selectedFormElement.length
           ? Array.from(defaultFormElement)
           : Array.from(selectedFormElement);
       const [moved] = list.splice(source.index, 1);
       list.splice(destination.index, 0, moved);
-      source.droppableId === "defaultElement"
+      source.droppableId === "defaultElement" && selectedFormElement.length
         ? setDefaultFormElement(list)
         : setSelectedFormElement(list);
     } else {

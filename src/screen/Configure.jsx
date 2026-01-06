@@ -3,18 +3,25 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { defaultFormConfigs } from "../formConstants/configConstant";
 import { CirclePlus } from "lucide-react";
 import { generateRandomId } from "../helpers/index";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Typography,
+} from "@mui/material";
+import { ArrowDropDown as ArrowDropDownIcon } from "@mui/icons-material";
 
 const grid = 8;
 
 const getListStyle = (isDraggingOver) => ({
-  background: isDraggingOver
-    ? "linear-gradient(145deg, #eef6ff, #ffffff)"
-    : "linear-gradient(145deg, #f8fafc, #ffffff)",
+  // background: isDraggingOver
+  //   ? "linear-gradient(145deg, #eef6ff, #ffffff)"
+  //   : "linear-gradient(145deg, #f8fafc, #ffffff)",
   padding: 16,
   width: 300,
   minHeight: 450,
   borderRadius: 16,
-  border: isDraggingOver ? "2px dashed #3b82f6" : "1px solid #e5e7eb",
+  // border: isDraggingOver ? "2px dashed #3b82f6" : "1px solid #e5e7eb",
   boxShadow: isDraggingOver
     ? "0 20px 40px rgba(59, 130, 246, 0.15)"
     : "0 10px 25px rgba(0, 0, 0, 0.08)",
@@ -27,12 +34,12 @@ const getItemStyle = (isDragging, draggableStyle) => ({
   padding: grid * 2,
   marginBottom: grid * 1.5,
 
-  background: isDragging
-    ? "linear-gradient(135deg, #ecfeff, #ffffff)"
-    : "#ffffff",
+  // background: isDragging
+  //   ? "linear-gradient(135deg, #ecfeff, #ffffff)"
+  //   : "#ffffff",
 
   borderRadius: 14,
-  border: isDragging ? "1.5px solid #3b82f6" : "1px solid #e5e7eb",
+  // border: isDragging ? "1.5px solid #3b82f6" : "1px solid #e5e7eb",
 
   boxShadow: isDragging
     ? "0 20px 40px rgba(59, 130, 246, 0.25)"
@@ -57,7 +64,7 @@ const DefaultFormElement = ({
   setSelectedFormElement,
 }) => {
   return (
-    <Droppable droppableId="defaultElement">
+    <Droppable droppableId="defaultElement" isDropDisabled={true}>
       {(provided, snapshot) => (
         <div
           {...provided.droppableProps}
@@ -100,7 +107,7 @@ const DefaultFormElement = ({
 };
 
 const SelectedDefaultFormElement = ({ handleDragEnd, selectedFormElement }) => {
-  const dragId = generateRandomId();
+  const [isCollapse, setIsCollapse] = useState(false);
   return (
     <Droppable droppableId="selectedFormElement">
       {(provided, snapshot) => (
@@ -109,46 +116,80 @@ const SelectedDefaultFormElement = ({ handleDragEnd, selectedFormElement }) => {
           ref={provided.innerRef}
           style={getListStyle(snapshot.isDraggingOver)}
         >
-          {selectedFormElement.map((item, index) => (
-            <Draggable key={item?.id} draggableId={item?.id} index={index}>
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}
-                  style={getItemStyle(
-                    snapshot.isDragging,
-                    provided.draggableProps.style
-                  )}
-                >
-                  {item?.label}
-                </div>
-              )}
-            </Draggable>
-          ))}
+          {selectedFormElement.map((Item, index) => {
+            const dragId = `element${Item?.id}`;
+            const sectionId = `section${Item.id}`;
+            return (
+              <Draggable key={dragId} draggableId={dragId} index={index}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    style={getItemStyle(
+                      snapshot.isDragging,
+                      provided.draggableProps.style
+                    )}
+                  >
+                    <Accordion
+                      style={{
+                        width: "100%",
+                      }}
+                    >
+                      {/* <span style={{ fontWeight: 500 }}>{Item.label}</span> */}
+                      <AccordionSummary
+                        expandIcon={<ArrowDropDownIcon />}
+                        aria-controls="panel2-content"
+                        id="panel2-header"
+                      >
+                        <Typography component="span">{Item.label}</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Item.ConfigureComponent
+                          sectionIndex={sectionId}
+                          initData={Item.initData}
+                        />
+                      </AccordionDetails>
+                    </Accordion>
+                  </div>
+                )}
+              </Draggable>
+            );
+          })}
           {provided.placeholder}
         </div>
       )}
     </Droppable>
   );
 };
+
+const PreviewElement = ({ selectedFormElement }) => {
+  console.log("selectedFormElement", selectedFormElement);
+  return (
+    <div
+      style={{
+        height: "500px",
+        background: "lightgrey",
+        borderRadius: "20px",
+        width: "300px",
+      }}
+    >
+      {selectedFormElement.map((Item, index) => (
+        <Item.PreviewComponent />
+      ))}
+    </div>
+  );
+};
 const Configure = () => {
   const [defaultFormElement, setDefaultFormElement] =
     useState(defaultFormConfigs);
   const [selectedFormElement, setSelectedFormElement] = useState([]);
-  console.info("🚀 ~ Configure ~ selectedFormElement:", selectedFormElement);
 
   const onDragEnd = (result) => {
-    console.log("function is called");
     const { source, destination } = result;
-    console.info("🚀 ~ onDragEnd ~ destination:", destination);
     if (!destination) return;
 
     if (source.droppableId === destination.droppableId) {
-      console.info(
-        "🚀 ~ onDragEnd ~ source.droppableId === destination.droppableId:",
-        source.droppableId === destination.droppableId
-      );
       const list =
         source.droppableId === "defaultElement" && selectedFormElement.length
           ? Array.from(defaultFormElement)
@@ -176,27 +217,6 @@ const Configure = () => {
       setSelectedFormElement(destinationList);
     }
   };
-  const handleDragEnd = (result) => {
-    const index = result.source.index;
-    const destination = result.destination.index;
-    const _defaultFormElement = defaultFormConfigs;
-    const [moved] = _defaultFormElement.splice(index, 1);
-    _defaultFormElement.splice(destination, 0, moved);
-    setDefaultFormElement(_defaultFormElement);
-  };
-
-  const selectedDragEnd = (result) => {
-    const index = result.source.index;
-    const destination = result.destination.index;
-    const _defaultFormElement = selectedFormElement;
-    const [moved] = _defaultFormElement.splice(index, 1);
-    _defaultFormElement.splice(destination, 0, moved);
-    console.info(
-      "🚀 ~ handleDragEnd ~ _defaultFormElement:",
-      _defaultFormElement
-    );
-    setSelectedFormElement(_defaultFormElement);
-  };
 
   return (
     <>
@@ -204,19 +224,38 @@ const Configure = () => {
         <div
           style={{
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "center",
           }}
         >
-          <DefaultFormElement
-            handleDragEnd={onDragEnd}
-            defaultFormElement={defaultFormElement}
-            setDefaultFormElement={setDefaultFormElement}
-            setSelectedFormElement={setSelectedFormElement}
-          />
-          <SelectedDefaultFormElement
-            selectedFormElement={selectedFormElement}
-            handleDragEnd={onDragEnd}
-          />
+          <div
+            style={{
+              marginRight: "40px",
+            }}
+          >
+            <DefaultFormElement
+              handleDragEnd={onDragEnd}
+              defaultFormElement={defaultFormElement}
+              setDefaultFormElement={setDefaultFormElement}
+              setSelectedFormElement={setSelectedFormElement}
+            />
+          </div>
+          <div
+            style={{
+              marginRight: "40px",
+            }}
+          >
+            <SelectedDefaultFormElement
+              selectedFormElement={selectedFormElement}
+              handleDragEnd={onDragEnd}
+            />
+          </div>
+          <div
+            style={{
+              marginRight: "40px",
+            }}
+          >
+            <PreviewElement selectedFormElement={selectedFormElement} />
+          </div>
         </div>
       </DragDropContext>
     </>

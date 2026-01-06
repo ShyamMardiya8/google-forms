@@ -1,7 +1,7 @@
 import React from "react";
 
 const Preview = () => {
-  return <div>Preview</div>;
+  return <div>Select Option is here</div>;
 };
 
 export default Preview;

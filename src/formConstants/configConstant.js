@@ -1,7 +1,7 @@
 import ConfigureInputField from "../defaultElements/InputField/Configure";
 import PreviewInputField from "../defaultElements/InputField/Preview";
 import ConfigureRadio from "../defaultElements/Radio/Configure";
-import PreviewRadio from "../defaultElements/InputField/Preview";
+import PreviewRadio from "../defaultElements/Radio/Preview";
 import ConfigureSelect from "../defaultElements/Select/Configure";
 import PreviewSelect from "../defaultElements/Select/Preview";
 
@@ -11,6 +11,18 @@ export const defaultFormConfigs = [
     label: "inputField",
     ConfigureComponent: ConfigureInputField,
     PreviewComponent: PreviewInputField,
+    initData: {
+      defaultAnswerValue: [
+        {
+          key: "yes",
+          value: "yes",
+        },
+        {
+          key: "no",
+          value: "no",
+        },
+      ],
+    },
   },
   {
     id: "radio",
